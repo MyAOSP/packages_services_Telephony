@@ -35,6 +35,8 @@ import android.provider.Settings;
 import android.util.Log;
 
 import com.android.internal.telephony.Phone;
+import com.android.internal.util.cm.QuietHoursUtils;
+
 /**
  * Ringer manager for the Phone app.
  */
@@ -202,13 +204,15 @@ public class Ringer {
     }
 
     boolean shouldVibrate() {
-        AudioManager audioManager = (AudioManager) mContext.getSystemService(Context.AUDIO_SERVICE);
-        int ringerMode = audioManager.getRingerMode();
+        int ringerMode = mAudioManager.getRingerMode();
+        boolean shouldVibrate = false;
         if (CallFeaturesSetting.getVibrateWhenRinging(mContext)) {
-            return ringerMode != AudioManager.RINGER_MODE_SILENT;
+            shouldVibrate = ringerMode != AudioManager.RINGER_MODE_SILENT;
         } else {
-            return ringerMode == AudioManager.RINGER_MODE_VIBRATE;
+            shouldVibrate = ringerMode == AudioManager.RINGER_MODE_VIBRATE;
         }
+        return shouldVibrate
+                && !QuietHoursUtils.inQuietHours(mContext, Settings.System.QUIET_HOURS_STILL);
     }
 
     /**
